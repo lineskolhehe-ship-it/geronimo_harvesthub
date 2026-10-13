@@ -1,115 +1,190 @@
 # Harvest Connect — Local Farmers' Harvest and Buyer Coordination System
 
-**Developer:** _Your Full Name_
-**Client:** _Name of the farmers' group / cooperative_ (_barangay, municipality_)
+**Developer:** Lenin Geronimo
+**Client:** FarmniBai (farmers' group), Barangay Pooc Oriental, Municipality of Tubigon
 **Course:** Course 4 — React Fundamentals with Laravel as Backend (Mini Capstone)
 
-## Theme
+## Theme and client
 
-Farmers record their harvests and publish crop listings with quantities and prices.
-Buyers browse and search listings and send purchase requests. Farmers approve or reject
-requests, and cooperative officers (admins) manage accounts and monitor everything.
+FarmniBai is a farmers' group in Barangay Pooc Oriental, Tubigon. Recording harvests, tracking
+which crops are available and at what price, and handling buyers' purchase requests are hard to
+manage without one shared system. Harvest Connect gives the group a single place where farmers
+record harvests and publish crop listings, buyers search listings and send purchase requests,
+and group officers (admins) manage accounts and monitor activity.
 
 ## Features
 
-- Sanctum token authentication: register, login, logout, current user
-- Three roles — **Admin**, **Farmer**, **Buyer** — enforced in React (hidden pages) **and** Laravel (middleware + policies)
+- Laravel Sanctum token authentication: register, login, logout, current user
+- Three roles — **Admin**, **Farmer**, **Buyer** — enforced in React (hidden pages) and in Laravel (middleware + policies)
 - Full CRUD: crops (admin), harvest records, crop listings, buyer requests, users (admin)
-- Search + filters (keyword, category, status) with Laravel `paginate()` shown in React
-- Role-specific dashboard with database-driven figures
-- Validation on both sides (React checks + Laravel Form Requests, 422 messages under each field)
-- Loading spinners, success/error alerts, confirm dialogs before delete / status changes
-- Request status workflow: Pending → Approved / Rejected → Completed (or Cancelled by the buyer); completing a sale deducts stock
-- Responsive layout (tables turn into cards on phones)
+- Search and filters (keyword, category, status) with Laravel `paginate()` displayed in React
+- Role-specific dashboard with figures calculated from the database
+- Validation on both sides: React form checks and Laravel Form Requests (422 errors shown under each field)
+- Loading spinners, success and error messages, and a confirm step before deleting or changing a status
+- Buyer request workflow: Pending → Approved / Rejected → Completed (or Cancelled by the buyer);
+  completing a sale deducts the quantity from the listing
+- Responsive layout (tables turn into cards on phone screens)
 
 ## Tech stack
 
-React 18 (Vite) · React Router 6 · Axios · plain CSS — Laravel 11/12 · PHP 8.2+ · Laravel Sanctum · MySQL/MariaDB
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 (Vite), React Router 6, Axios, plain CSS |
+| Backend | Laravel 12, PHP 8.2+, Laravel Sanctum |
+| Database | MySQL / MariaDB |
+| Tools | Git + GitHub, Postman, Composer, npm |
 
 ## Repository layout
 
 ```
-/backend    Laravel API (built from a fresh Laravel + the files in backend-overlay, see below)
-/frontend   React SPA
-/docs       ERD, API docs, screenshots, slides, Postman collection
+/backend    Laravel REST API
+/frontend   React single-page app
+/docs       ERD, Postman collection, screenshots, slides
 ```
 
-## Setup
+## Setup (fresh clone)
 
-### 0. One-time: create the Laravel app and apply the project files
+Requirements: PHP 8.2+, Composer, Node.js 18+, MySQL/MariaDB (for example XAMPP or Laragon).
 
-This repository ships the **project-specific** Laravel code in `backend-overlay/`.
-Create a fresh Laravel app, then copy the overlay on top of it:
+### 1. Get the code
 
 ```bash
-composer create-project laravel/laravel backend
-cd backend
-php artisan install:api            # installs Laravel Sanctum + routes/api.php + token migration
-cd ..
+git clone <repository-url>
+cd <repository-folder>
 ```
 
-Copy `backend-overlay/*` into `backend/` and **overwrite when asked**:
+### 2. Backend
 
-- macOS / Linux: `cp -R backend-overlay/. backend/`
-- Windows (PowerShell): `Copy-Item -Recurse -Force backend-overlay\* backend\`
-- Windows (CMD): `xcopy backend-overlay backend /E /Y`
-
-Then delete the `backend-overlay` folder (its contents now live in `backend/`) and commit.
-
-> The overlay replaces `routes/api.php`, `bootstrap/app.php`, `app/Models/User.php`,
-> `database/factories/UserFactory.php`, `database/seeders/DatabaseSeeder.php`, and `.env.example`,
-> and adds the migrations, controllers, requests, resources, policies, middleware, and `config/cors.php`.
-
-### 1. Backend
+Create an empty MySQL database named `harvest_connect`, then:
 
 ```bash
 cd backend
 composer install
-cp .env.example .env               # (Windows CMD: copy .env.example .env)
+cp .env.example .env        # Windows CMD: copy .env.example .env
 php artisan key:generate
-# create an empty MySQL database named harvest_connect, then check DB_* values in .env
-php artisan migrate --seed
-php artisan serve                  # http://localhost:8000
 ```
 
-### 2. Frontend
+Open `backend/.env` and check the database settings match your MySQL setup:
+
+```
+DB_DATABASE=harvest_connect
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Then create the tables, load the sample data, and start the API:
+
+```bash
+php artisan migrate --seed
+php artisan serve           # http://localhost:8000
+```
+
+### 3. Frontend (in a second terminal)
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env               # VITE_API_URL=http://localhost:8000/api
-npm run dev                        # http://localhost:5173
+cp .env.example .env        # Windows CMD: copy .env.example .env
+npm run dev                 # http://localhost:5173
 ```
+
+Open http://localhost:5173 and log in with a demo account.
 
 ## Demo accounts (password for all: `password`)
 
 | Role | Email |
 |---|---|
 | Admin | admin@harvest.test |
-| Farmer | farmer@harvest.test (also maria.santos@harvest.test, …) |
-| Buyer | buyer@harvest.test (also antonio.reyes@harvest.test, …) |
+| Farmer | farmer@harvest.test |
+| Buyer | buyer@harvest.test |
+
+More seeded farmers and buyers use the same password (see `backend/database/seeders/DatabaseSeeder.php`).
 
 ## Demo scenario
 
-1. **Buyer** (Josefina Mercado) browses listings, filters by *Vegetables*, requests 20 kg of tomatoes.
-2. **Farmer** (Roberto Dela Cruz) opens *Buyer Requests*, approves it, then marks it completed → stock is deducted.
-3. **Buyer** sees the status change under *My Requests*.
-4. **Admin** reviews the dashboard, manages the crop catalog and users.
+1. **Buyer** (Josefina Mercado) browses the listings, filters by *Vegetables*, and requests some tomatoes.
+2. **Farmer** (Roberto Dela Cruz) opens *Buyer Requests*, approves the request, then marks it completed.
+   The quantity is deducted from the listing.
+3. **Buyer** sees the new status under *My Requests*.
+4. **Admin** reviews the dashboard and manages the crop catalog and user accounts.
+
+## API endpoints
+
+Base URL: `http://localhost:8000/api`. Protected routes need the header
+`Authorization: Bearer <token>`. Send `Accept: application/json` on every request.
+
+| Method | Endpoint | Access | Purpose |
+|---|---|---|---|
+| POST | `/register` | Public | Create a farmer or buyer account (returns token) |
+| POST | `/login` | Public | Log in (returns token) |
+| POST | `/logout` | Auth | Revoke the current token |
+| GET | `/user` | Auth | Current user |
+| GET | `/dashboard` | Auth | Role-specific summary figures |
+| GET | `/crops?search=&category=&page=` | Auth | List the crop catalog |
+| GET | `/crops/{id}` | Auth | View one crop |
+| POST | `/crops` | Admin | Create a crop |
+| PUT | `/crops/{id}` | Admin | Update a crop |
+| DELETE | `/crops/{id}` | Admin | Delete a crop |
+| GET | `/users?search=&role=&page=` | Admin | List users |
+| POST | `/users` | Admin | Create a user |
+| GET | `/users/{id}` | Admin | View one user |
+| PUT | `/users/{id}` | Admin | Update a user |
+| DELETE | `/users/{id}` | Admin | Delete a user |
+| GET | `/harvest-records?search=&status=&page=` | Farmer (own) / Admin (all) | List harvest records |
+| POST | `/harvest-records` | Farmer | Create a harvest record |
+| GET | `/harvest-records/{id}` | Owner / Admin | View one |
+| PUT | `/harvest-records/{id}` | Owner / Admin | Update |
+| DELETE | `/harvest-records/{id}` | Owner / Admin | Delete |
+| GET | `/crop-listings?search=&category=&status=&mine=&page=` | Auth | Browse listings (buyers see available only by default) |
+| POST | `/crop-listings` | Farmer | Create a listing |
+| GET | `/crop-listings/{id}` | Auth | View one |
+| PUT | `/crop-listings/{id}` | Owner / Admin | Update |
+| DELETE | `/crop-listings/{id}` | Owner / Admin | Delete |
+| GET | `/buyer-requests?search=&status=&page=` | Auth | Buyer: own. Farmer: for own listings. Admin: all |
+| POST | `/buyer-requests` | Buyer | Submit a purchase request |
+| GET | `/buyer-requests/{id}` | Buyer / listing farmer / Admin | View one |
+| PUT | `/buyer-requests/{id}` | Buyer (own, pending) | Edit quantity or message |
+| DELETE | `/buyer-requests/{id}` | Buyer (own, pending) / Admin | Delete |
+| PATCH | `/buyer-requests/{id}/status` | Role-based (see below) | Change the request status |
+
+### Request status workflow
+
+| From | To | Who |
+|---|---|---|
+| pending | approved or rejected | Farmer (own listing) or Admin |
+| approved | completed | Farmer (own listing) or Admin — deducts the quantity from the listing |
+| pending | cancelled | Buyer (own request) |
+
+Any other change returns HTTP 422.
+
+### Status codes used
+
+200 OK · 201 Created · 204 No Content · 401 Unauthenticated · 403 Forbidden · 404 Not Found · 422 Validation error
 
 ## Documentation
 
-- ERD: `docs/erd.png` (source in `docs/erd.md`)
-- API: `docs/api-endpoints.md` and the Postman collection in `docs/`
+- ERD: `docs/erd.png`
+- API collection: `docs/harvest-connect.postman_collection.json`
 - Screenshots: `docs/screenshots/`
-- Slides: `docs/` (PDF)
-- Demo video: _add link here_
+- Presentation slides (PDF): `docs/`
+- Demo video: _add the link here_
 
-## Known limitations / Phase 2 ideas
+## Known limitations and Phase 2 ideas
 
-No online payments or delivery tracking. Possible Phase 2: crop photos, SMS/email notifications,
-price history charts, CSV/PDF reports.
+The first version has no online payments, delivery tracking, or notifications. Possible Phase 2
+features: crop photos, SMS or email notifications, price history charts, and CSV or PDF reports.
 
 ## References
 
-List every tutorial, AI assistant, or Stack Overflow answer you used for code here.
-_(AI assistance was used to scaffold parts of this project — declare it here as required.)_
+**AI assistance:** I used Claude (an AI assistant made by Anthropic) while building this project.
+It generated the initial code for the Laravel migrations, models, policies, controllers, Form
+Requests, API Resources, seeders and factories, the React components and pages, the stylesheet,
+and the ERD image. I then ran the project, tested it, and modified it myself.
+
+Other sources:
+- Laravel documentation (https://laravel.com/docs) — routing, validation, Eloquent, API Resources
+- Laravel Sanctum documentation (https://laravel.com/docs/sanctum) — API token authentication
+- React documentation (https://react.dev) and React Router documentation (https://reactrouter.com)
+- Axios documentation (https://axios-http.com)
+
+_Add any other tutorials, videos, or Stack Overflow answers you used here._
