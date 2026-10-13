@@ -1,0 +1,2012 @@
+{
+  "info": {
+    "name": "Harvest Connect API",
+    "description": "Tests for the Harvest Connect Laravel API. Run folders 1 to 8 in order (Runner), with the backend running at http://localhost:8000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Login (run these first)",
+      "item": [
+        {
+          "name": "Login as admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@harvest.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"A token is returned\", function () { pm.expect(json.token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"admin_token\", json.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as farmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@harvest.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"A token is returned\", function () { pm.expect(json.token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"farmer_token\", json.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as buyer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"buyer@harvest.test\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"A token is returned\", function () { pm.expect(json.token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"buyer_token\", json.token);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Logs in as each role and stores the tokens. Every later folder uses the right token automatically."
+    },
+    {
+      "name": "2. Authentication checks",
+      "item": [
+        {
+          "name": "Register with invalid data (expect 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"not-an-email\",\n  \"role\": \"admin\",\n  \"password\": \"123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });",
+                  "const errs = pm.response.json().errors || {};",
+                  "pm.test(\"Validation error on name\", function () { pm.expect(errs).to.have.property(\"name\"); });",
+                  "pm.test(\"Validation error on email\", function () { pm.expect(errs).to.have.property(\"email\"); });",
+                  "pm.test(\"Validation error on role\", function () { pm.expect(errs).to.have.property(\"role\"); });",
+                  "pm.test(\"Validation error on password\", function () { pm.expect(errs).to.have.property(\"password\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register a new buyer (expect 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Buyer\",\n  \"email\": \"tester{{$timestamp}}@harvest.test\",\n  \"role\": \"buyer\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"A token is returned\", function () { pm.expect(pm.response.json().token).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get current user (farmer token)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Email matches the farmer\", function () { pm.expect(pm.response.json().data.email).to.eql(\"farmer@harvest.test\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard without a token (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Message says Unauthenticated\", function () { pm.expect(pm.response.json().message).to.eql(\"Unauthenticated.\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "3. Admin: dashboard, crops, users",
+      "item": [
+        {
+          "name": "Admin dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Stats are returned\", function () { pm.expect(pm.response.json().data.stats.length).to.be.above(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List crops with search, filter, and page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crops?search=to&category=Vegetables&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crops"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "to"
+                },
+                {
+                  "key": "category",
+                  "value": "Vegetables"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a crop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crops",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crops"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Garlic {{$timestamp}}\",\n  \"category\": \"Herbs & Spices\",\n  \"description\": \"Test crop\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"crop_id\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a crop with empty data (expect 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crops",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crops"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });",
+                  "const errs = pm.response.json().errors || {};",
+                  "pm.test(\"Validation error on name\", function () { pm.expect(errs).to.have.property(\"name\"); });",
+                  "pm.test(\"Validation error on category\", function () { pm.expect(errs).to.have.property(\"category\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update the crop",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crops/{{crop_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crops",
+                "{{crop_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Garlic Updated {{$timestamp}}\",\n  \"category\": \"Herbs & Spices\",\n  \"description\": \"Updated description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the crop",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crops/{{crop_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crops",
+                "{{crop_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List users filtered by role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users?role=farmer&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "farmer"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Farmer\",\n  \"email\": \"farmer{{$timestamp}}@harvest.test\",\n  \"role\": \"farmer\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"user_id\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the user",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin sees all harvest records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin sees all buyer requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{admin_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Farmer: harvest records and listings",
+      "item": [
+        {
+          "name": "List my harvest records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records?status=harvested&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "harvested"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a harvest record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_id\": 1,\n  \"expected_quantity\": 200,\n  \"unit\": \"kg\",\n  \"harvest_date\": \"2026-10-20\",\n  \"status\": \"planned\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"record_id\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a harvest record with empty data (expect 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });",
+                  "const errs = pm.response.json().errors || {};",
+                  "pm.test(\"Validation error on crop_id\", function () { pm.expect(errs).to.have.property(\"crop_id\"); });",
+                  "pm.test(\"Validation error on expected_quantity\", function () { pm.expect(errs).to.have.property(\"expected_quantity\"); });",
+                  "pm.test(\"Validation error on harvest_date\", function () { pm.expect(errs).to.have.property(\"harvest_date\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update the harvest record",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records/{{record_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records",
+                "{{record_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_id\": 1,\n  \"expected_quantity\": 250,\n  \"actual_quantity\": 240,\n  \"unit\": \"kg\",\n  \"harvest_date\": \"2026-10-20\",\n  \"status\": \"harvested\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Status changed to harvested\", function () { pm.expect(pm.response.json().data.status).to.eql(\"harvested\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create a crop listing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_id\": 1,\n  \"harvest_record_id\": {{record_id}},\n  \"available_quantity\": 100,\n  \"unit\": \"kg\",\n  \"price_per_unit\": 45,\n  \"harvest_date\": \"2026-10-20\",\n  \"status\": \"available\",\n  \"description\": \"Freshly harvested tomatoes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"listing_id\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update the listing",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings/{{listing_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings",
+                "{{listing_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_id\": 1,\n  \"available_quantity\": 100,\n  \"unit\": \"kg\",\n  \"price_per_unit\": 48,\n  \"status\": \"available\",\n  \"description\": \"Freshly harvested tomatoes, price updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Price updated\", function () { pm.expect(pm.response.json().data.price_per_unit).to.eql(\"48.00\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the harvest record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records/{{record_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records",
+                "{{record_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deleted record is gone (expect 404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/harvest-records/{{record_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "harvest-records",
+                "{{record_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Buyer: browse and request",
+      "item": [
+        {
+          "name": "Browse listings with search, filter, and page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings?search=tomato&category=Vegetables&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "tomato"
+                },
+                {
+                  "key": "category",
+                  "value": "Vegetables"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "View the farmer's new listing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings/{{listing_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings",
+                "{{listing_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Starts with 100 available\", function () { pm.expect(pm.response.json().data.available_quantity).to.eql(\"100.00\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buyer cannot create a listing (expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_id\": 1,\n  \"available_quantity\": 10,\n  \"unit\": \"kg\",\n  \"price_per_unit\": 20,\n  \"status\": \"available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buyer cannot list users (expect 403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit a purchase request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_listing_id\": {{listing_id}},\n  \"requested_quantity\": 10,\n  \"message\": \"Pickup on Saturday morning, please.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.collectionVariables.set(\"request_id\", pm.response.json().data.id);",
+                  "pm.test(\"Starts as pending\", function () { pm.expect(pm.response.json().data.status).to.eql(\"pending\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request more than available (expect 422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop_listing_id\": {{listing_id}},\n  \"requested_quantity\": 99999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });",
+                  "const errs = pm.response.json().errors || {};",
+                  "pm.test(\"Validation error on requested_quantity\", function () { pm.expect(errs).to.have.property(\"requested_quantity\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit my request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests/{{request_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests",
+                "{{request_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requested_quantity\": 10,\n  \"message\": \"Pickup on Saturday at 8 AM.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List my pending requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests?status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buyer dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buyer cannot approve their own request (expect 422)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests/{{request_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests",
+                "{{request_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{buyer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "6. Farmer reviews the request",
+      "item": [
+        {
+          "name": "Farmer sees pending requests for own listings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests?status=pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response has a data array\", function () { pm.expect(json.data).to.be.an(\"array\"); });",
+                  "pm.test(\"Response has pagination meta\", function () { pm.expect(json.meta).to.have.property(\"last_page\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve the request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests/{{request_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests",
+                "{{request_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Status is approved\", function () { pm.expect(pm.response.json().data.status).to.eql(\"approved\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark the request completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests/{{request_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests",
+                "{{request_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Status is completed\", function () { pm.expect(pm.response.json().data.status).to.eql(\"completed\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listing quantity was deducted (100 - 10 = 90)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings/{{listing_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings",
+                "{{listing_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Available quantity is now 90\", function () { pm.expect(pm.response.json().data.available_quantity).to.eql(\"90.00\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Completed request cannot be changed (expect 422)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/buyer-requests/{{request_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buyer-requests",
+                "{{request_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 422\", function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "7. Cleanup",
+      "item": [
+        {
+          "name": "Delete the test listing",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/crop-listings/{{listing_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "crop-listings",
+                "{{listing_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "8. Logout",
+      "item": [
+        {
+          "name": "Log out (buyer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoked token no longer works (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{buyer_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "farmer_token",
+      "value": ""
+    },
+    {
+      "key": "buyer_token",
+      "value": ""
+    },
+    {
+      "key": "crop_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "record_id",
+      "value": ""
+    },
+    {
+      "key": "listing_id",
+      "value": ""
+    },
+    {
+      "key": "request_id",
+      "value": ""
+    }
+  ]
+}
