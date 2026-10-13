@@ -1,0 +1,8 @@
+# Never commit these
+.env
+vendor/
+node_modules/
+dist/
+.DS_Store
+.idea/
+.vscode/
